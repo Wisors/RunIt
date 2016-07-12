@@ -8,15 +8,15 @@
 
 import Foundation
 
-class RunItComponent: Component, Runnable {
+public class RunItComponent: Component, Runnable {
     
-    var isRunning: Bool = false
+    private(set) public var isRunning: Bool = false
     
-    func run() {
+    public func run() {
         isRunning = true
     }
     
-    func stop() {
+    public func stop() {
         isRunning = false
     }
 }

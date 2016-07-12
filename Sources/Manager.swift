@@ -20,7 +20,7 @@
 
 import Foundation
 
-protocol Manager {
+public protocol Manager {
     
     var runComponentsOnAdd: Bool {get set}
     

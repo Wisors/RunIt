@@ -79,13 +79,13 @@ public class RunIt: Manager, Component {
         return RunIt.manager.get(componentForKey: key)
     }
     
-    func get<T: Component>() -> T? {
+    public func get<T: Component>() -> T? {
         
         let key = String(T.Type)
         return get(componentForKey: key)
     }
     
-    func get<T : Component>(componentForKey key: String) -> T? {
+    public func get<T : Component>(componentForKey key: String) -> T? {
         
         var component: T? = nil
         dispatch_sync(syncQueue) {
