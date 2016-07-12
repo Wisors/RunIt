@@ -30,8 +30,6 @@ protocol Manager {
     func get<T: Component>() -> T?
     func get<T: Component>(componentForKey key: String) -> T?
     
-    func remove(component component: Component) -> Bool
+    func remove<T: Component>(component component: T) -> Bool
     func remove(componentForKey key: String) -> Bool
 }
-
-

@@ -10,7 +10,7 @@ import Foundation
 
 public protocol Component {}
 
-public protocol Runable {
+public protocol Runnable {
     
     var isRunning: Bool {get}
     

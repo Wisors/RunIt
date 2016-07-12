@@ -25,10 +25,14 @@ public class RunIt: Manager, Component {
     public static let manager: RunIt = RunIt()
     
     public var runComponentsOnAdd: Bool = true
-    public var suppressAssert: Bool = false
+    public var stopComponentOnRemove: Bool = true
+    lazy public var syncQueue: dispatch_queue_t = dispatch_queue_create("RunIt.Queue", DISPATCH_QUEUE_CONCURRENT)
     
     private var components: [String: Component] = [:]
-    private var syncQueue: dispatch_queue_t = dispatch_queue_create("RunIt.Queue", DISPATCH_QUEUE_CONCURRENT)
+    
+    #if DEBUG
+    public var suppressAssert: Bool = false
+    #endif
     
     // MARK: - Add methods -
     public static func add(component component: Component) {
@@ -47,13 +51,22 @@ public class RunIt: Manager, Component {
     
     public func add(component component: Component, forKey key: String) {
         
+        #if DEBUG
         assert(suppressAssert == false && components[key] != nil, "WARNING! Trying to reassign component with new one! Possible data loss situation.")
+        #endif
         dispatch_barrier_async(syncQueue) {
             
             self.components[key] = component
+            self.postNotification(RunItDidAddComponentNotification, component: component, key: key)
             
-            guard self.runComponentsOnAdd, let runable = component as? Runable else { return }
-            runable.run()
+            if self.runComponentsOnAdd, let runnable = component as? Runnable where runnable.isRunning == false {
+                
+                dispatch_async(self.syncQueue, {
+                    
+                    runnable.run()
+                    self.postNotification(RunItDidRunComponentNotification, component: component, key: key)
+                })
+            }
         }
     }
     
@@ -82,7 +95,7 @@ public class RunIt: Manager, Component {
     }
     
     // MARK - Remove methods -
-    public static func remove(component component: Component) -> Bool {
+    public static func remove<T: Component>(component component: T) -> Bool {
         return RunIt.manager.remove(component: component)
     }
     
@@ -90,18 +103,38 @@ public class RunIt: Manager, Component {
         return RunIt.manager.remove(componentForKey: key)
     }
     
-    func remove(component component: Component) -> Bool {
-        
+    public func remove<T: Component>(component component: T) -> Bool {
+
         let key = String(component.dynamicType)
         return remove(componentForKey: key)
     }
     
-    func remove(componentForKey key: String) -> Bool {
+    public func remove(componentForKey key: String) -> Bool {
         
         var result: Component? = nil
         dispatch_sync(syncQueue) {
             result = self.components.removeValueForKey(key)
         }
-        return result != nil
+        if let component = result {
+            
+            NSNotificationCenter.defaultCenter().postNotificationName(RunItDidRemoveComponentNotification, object: component as? AnyObject, userInfo: [RunItDidRemoveComponentNotification : key])
+            if let runnable = result as? Runnable where runnable.isRunning {
+                dispatch_async(syncQueue) {
+                    
+                    runnable.stop()
+                    self.postNotification(RunItDidStopComponentNotification, component: component, key: key)
+                }
+            }
+            return true
+        }
+        return false
+    }
+    
+    // MARK: - Post events - 
+    private func postNotification(name: String, component: Component, key: String) {
+        
+        dispatch_async(dispatch_get_main_queue(), {
+            NSNotificationCenter.defaultCenter().postNotificationName(name, object: component as? AnyObject, userInfo: [RunItNotificaionComponentKeyKey : key])
+        })
     }
 }
