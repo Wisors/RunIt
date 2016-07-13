@@ -14,8 +14,8 @@ RunIt is a super lightweight yet powerful system components manager. It helps to
 - [x] Thread-safe access for your components
 - [x] Generic getters
 - [x] Extensibility
-- [] Remove components only by it type
-- [] NSOperation as Compoents support
+- [ ] Remove components only by it type
+- [ ] NSOperation as Compoents support
 
 
 ## Getting Started
@@ -37,7 +37,7 @@ if APNSIsAvailable {
 	let APNSService = APNSComponent()
 	RunIt.add(APNSService)
 	// or
-	RunIt.add(component: component, forKey: "APNSService")
+	RunIt.add(component: APNSService, forKey: "APNSService")
 }
 ```
 Later, anywhere in your code you have access to your components with generic getters.
@@ -45,14 +45,14 @@ Later, anywhere in your code you have access to your components with generic get
 let apnsService: LocationComponent? = RunIt.get()
 let apnsService: APNSComponent? = RunIt.get(componentForKey: "APNSService")
 ```
-No need for particular component anymore? Easy 
+No need for component anymore? Easy 
 ```swift
 RunIt.remove(component: component)
 RunIt.remove(componentForKey: "APNSService")
 ```
 All provided actions on RunIt are thread-safe. 
 
-#### Run components
+#### Run your components
 
 Your component may conforms to protocol `Runnable` and RunIt will automaticaly runs and stops your component on `add` and `remove` operations. Furthermore, `run` will be executed separate queue (background by default). You can control this behavior through flags:
 ```swift
