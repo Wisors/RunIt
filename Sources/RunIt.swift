@@ -23,8 +23,20 @@ import Foundation
 public class RunIt: Manager, Component {
     
     public static let manager: RunIt = RunIt()
+    public static var runComponentOnAdd: Bool {
+        set { RunIt.manager.runComponentOnAdd = newValue }
+        get { return RunIt.manager.runComponentOnAdd }
+    }
+    public static var stopComponentOnRemove: Bool {
+        set { RunIt.manager.stopComponentOnRemove = newValue }
+        get { return RunIt.manager.stopComponentOnRemove }
+    }
+    public static var syncQueue: dispatch_queue_t {
+        set { RunIt.manager.syncQueue = newValue }
+        get { return RunIt.manager.syncQueue }
+    }
     
-    public var runComponentsOnAdd: Bool = true
+    public var runComponentOnAdd: Bool = true
     public var stopComponentOnRemove: Bool = true
     lazy public var syncQueue: dispatch_queue_t = dispatch_queue_create("RunIt.Queue", DISPATCH_QUEUE_CONCURRENT)
     
@@ -59,7 +71,7 @@ public class RunIt: Manager, Component {
             self.components[key] = component
             self.postNotification(RunItDidAddComponentNotification, component: component, key: key)
             
-            if self.runComponentsOnAdd, let runnable = component as? Runnable where runnable.isRunning == false {
+            if self.runComponentOnAdd, let runnable = component as? Runnable where runnable.isRunning == false {
                 
                 dispatch_async(self.syncQueue, {
                     
@@ -118,7 +130,7 @@ public class RunIt: Manager, Component {
         if let component = result {
             
             NSNotificationCenter.defaultCenter().postNotificationName(RunItDidRemoveComponentNotification, object: component as? AnyObject, userInfo: [RunItDidRemoveComponentNotification : key])
-            if let runnable = result as? Runnable where runnable.isRunning {
+            if self.stopComponentOnRemove, let runnable = result as? Runnable where runnable.isRunning {
                 dispatch_async(syncQueue) {
                     
                     runnable.stop()

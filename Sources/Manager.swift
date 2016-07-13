@@ -22,7 +22,8 @@ import Foundation
 
 public protocol Manager {
     
-    var runComponentsOnAdd: Bool {get set}
+    var runComponentOnAdd: Bool {get set}
+    var stopComponentOnRemove: Bool {get set}
     
     func add(component component: Component)
     func add(component component: Component, forKey key: String)
