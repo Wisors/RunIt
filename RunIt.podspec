@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
     s.name                  = 'RunIt'
     s.module_name           = 'RunIt'
 
-    s.version               = '0.1.0'
+    s.version               = '0.1.1'
 
     s.homepage              = 'https://github.com/Wisors/RunIt'
     s.summary               = 'A simple component helps you have only one Singleton.'

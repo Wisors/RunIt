@@ -10,7 +10,11 @@ import Foundation
 
 public class RunItComponent: Component, Runnable {
     
-    private(set) public var isRunning: Bool = false
+    private(set) public var isRunning: Bool
+    
+    public init() {
+        isRunning = false
+    }
     
     public func run() {
         isRunning = true
