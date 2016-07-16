@@ -38,7 +38,10 @@ public class RunIt: Manager, Component {
     
     public var runComponentOnAdd: Bool = true
     public var stopComponentOnRemove: Bool = true
+    /// Dispatch queue where access is synced. Custom concurrent queue by default. Usually no need to change it.
     lazy public var syncQueue: dispatch_queue_t = dispatch_queue_create("RunIt.Queue", DISPATCH_QUEUE_CONCURRENT)
+    /// Dispatch queue where components will be executed if not specified per component queue. MainQueue by default.
+    lazy public var runQueue: dispatch_queue_t = dispatch_get_main_queue()
     
     private var components: [String: Component] = [:]
     
@@ -73,10 +76,20 @@ public class RunIt: Manager, Component {
             
             if self.runComponentOnAdd, let runnable = component as? Runnable where runnable.isRunning == false {
                 
-                dispatch_async(self.syncQueue, {
+                let runQueue = runnable.runQueue ?? self.runQueue
+                dispatch_async(runQueue, {
                     
-                    runnable.run()
-                    self.postNotification(RunItDidRunComponentNotification, component: component, key: key)
+                    var stillThere: Bool = false
+                    dispatch_sync(self.syncQueue, {
+                        if let _ = self.components[key] {
+                            stillThere = true
+                        }
+                    })
+                    if stillThere {
+                        
+                        runnable.run()
+                        self.postNotification(RunItDidRunComponentNotification, component: component, key: key)
+                    }
                 })
             }
         }
@@ -119,6 +132,10 @@ public class RunIt: Manager, Component {
         return RunIt.manager.remove(component: component)
     }
     
+    public static func remove<T: Component>(comoponentType: T.Type) -> Bool {
+        return RunIt.manager.remove(componentForKey: String(comoponentType))
+    }
+    
     public static func remove(componentForKey key: String) -> Bool {
         return RunIt.manager.remove(componentForKey: key)
     }
@@ -127,6 +144,10 @@ public class RunIt: Manager, Component {
 
         let key = String(component.dynamicType)
         return remove(componentForKey: key)
+    }
+    
+    public func remove<T: Component>(comoponentType: T.Type) -> Bool {
+        return remove(componentForKey: String(comoponentType))
     }
     
     public func remove(componentForKey key: String) -> Bool {
@@ -139,7 +160,9 @@ public class RunIt: Manager, Component {
             
             NSNotificationCenter.defaultCenter().postNotificationName(RunItDidRemoveComponentNotification, object: component as? AnyObject, userInfo: [RunItDidRemoveComponentNotification : key])
             if self.stopComponentOnRemove, let runnable = result as? Runnable where runnable.isRunning {
-                dispatch_async(syncQueue) {
+                
+                let runQueue = runnable.runQueue ?? self.runQueue
+                dispatch_async(runQueue) {
                     
                     runnable.stop()
                     self.postNotification(RunItDidStopComponentNotification, component: component, key: key)
