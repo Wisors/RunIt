@@ -87,6 +87,10 @@ public class RunIt: Manager, Component {
         return RunIt.manager.get()
     }
     
+    public static func get<T: Component>(comoponentType: T.Type) -> T? {
+        return RunIt.manager.get(componentForKey: String(comoponentType))
+    }
+    
     public static func get<T : Component>(componentForKey key: String) -> T? {
         return RunIt.manager.get(componentForKey: key)
     }
@@ -95,6 +99,10 @@ public class RunIt: Manager, Component {
         
         let key = String(T.Type)
         return get(componentForKey: key)
+    }
+        
+    public func get<T: Component>(comoponentType: T.Type) -> T? {
+        return get(componentForKey: String(comoponentType))
     }
     
     public func get<T : Component>(componentForKey key: String) -> T? {
