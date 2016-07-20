@@ -20,7 +20,7 @@
 
 import Foundation
 
-public class RunItComponent: Component, Runnable {
+public class RunItComponent: Runnable {
     
     private(set) public var isRunning: Bool
     public var runQueue: dispatch_queue_t?
