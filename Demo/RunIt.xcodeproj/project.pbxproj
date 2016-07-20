@@ -18,6 +18,7 @@
 		6D5484451D2ECB2E00305865 /* Component.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5484441D2ECB2E00305865 /* Component.swift */; };
 		6D5484471D2ED1E600305865 /* RunItConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5484461D2ED1E600305865 /* RunItConstants.swift */; };
 		6D54844B1D2ED94D00305865 /* RunItComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D54844A1D2ED94D00305865 /* RunItComponent.swift */; };
+		6D7C70B91D3FF346005CF25A /* RunItSyntaxSugar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7C70B81D3FF346005CF25A /* RunItSyntaxSugar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 		6D5484441D2ECB2E00305865 /* Component.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Component.swift; sourceTree = "<group>"; };
 		6D5484461D2ED1E600305865 /* RunItConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RunItConstants.swift; sourceTree = "<group>"; };
 		6D54844A1D2ED94D00305865 /* RunItComponent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RunItComponent.swift; sourceTree = "<group>"; };
+		6D7C70B81D3FF346005CF25A /* RunItSyntaxSugar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RunItSyntaxSugar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +117,7 @@
 				6D5484401D2ECA2F00305865 /* RunIt.swift */,
 				6D54844A1D2ED94D00305865 /* RunItComponent.swift */,
 				6D5484461D2ED1E600305865 /* RunItConstants.swift */,
+				6D7C70B81D3FF346005CF25A /* RunItSyntaxSugar.swift */,
 			);
 			name = Sources;
 			path = ../../Sources;
@@ -225,6 +228,7 @@
 				6D5484431D2ECAE700305865 /* Manager.swift in Sources */,
 				6D5484471D2ED1E600305865 /* RunItConstants.swift in Sources */,
 				6D5484221D2EC9AA00305865 /* ViewController.swift in Sources */,
+				6D7C70B91D3FF346005CF25A /* RunItSyntaxSugar.swift in Sources */,
 				6D54844B1D2ED94D00305865 /* RunItComponent.swift in Sources */,
 				6D5484201D2EC9AA00305865 /* AppDelegate.swift in Sources */,
 				6D5484451D2ECB2E00305865 /* Component.swift in Sources */,

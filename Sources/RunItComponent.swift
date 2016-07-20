@@ -24,11 +24,13 @@ public class RunItComponent: Component, Runnable {
     
     private(set) public var isRunning: Bool
     public var runQueue: dispatch_queue_t?
+    public var priority: NSOperationQueuePriority
     
-    public init(_ runQueue: dispatch_queue_t? = nil) {
+    public init(_ runQueue: dispatch_queue_t? = nil, priority: NSOperationQueuePriority = .Normal) {
         
         self.isRunning = false
         self.runQueue = runQueue
+        self.priority = priority
     }
     
     public func run() {

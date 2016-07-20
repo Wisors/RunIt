@@ -23,41 +23,39 @@ import Foundation
 public class RunIt: Manager, Component {
     
     public static let manager: RunIt = RunIt()
-    public static var runComponentOnAdd: Bool {
-        set { RunIt.manager.runComponentOnAdd = newValue }
-        get { return RunIt.manager.runComponentOnAdd }
-    }
-    public static var stopComponentOnRemove: Bool {
-        set { RunIt.manager.stopComponentOnRemove = newValue }
-        get { return RunIt.manager.stopComponentOnRemove }
-    }
-    public static var syncQueue: dispatch_queue_t {
-        set { RunIt.manager.syncQueue = newValue }
-        get { return RunIt.manager.syncQueue }
-    }
     
+    /** 
+    `Runnable` components will scheduled to run in runOperationQueue on add operation if flag is `true`.
+     
+    - Warning: If component will be removed before it started to run than it will canceled to run and will never be started or stoped.
+     */
     public var runComponentOnAdd: Bool = true
+    /// `Runnable` components will scheduled to stop in runOperationQueue on remove operation if flag is `true`
     public var stopComponentOnRemove: Bool = true
     /// Dispatch queue where access is synced. Custom concurrent queue by default. Usually no need to change it.
-    lazy public var syncQueue: dispatch_queue_t = dispatch_queue_create("RunIt.Queue", DISPATCH_QUEUE_CONCURRENT)
-    /// Dispatch queue where components will be executed if not specified per component queue. MainQueue by default.
-    lazy public var runQueue: dispatch_queue_t = dispatch_get_main_queue()
+    lazy public var syncQueue: dispatch_queue_t = dispatch_queue_create("RunIt.SyncQueue", DISPATCH_QUEUE_CONCURRENT)
+    /**
+    This queue is intended to run/stop components or custom user NSOperation objects. It's possible to change any property of this queue, but with a respect to NSOperationQueue properties change rules (for example, you can't change underlyingQueue while there are operations in queue).
+    
+    - Warning: It's not recommended to use same underlyingQueue with RunIt.syncQueue for thread-safety.
+    */
+    lazy public private(set) var runOperationQueue: NSOperationQueue = { return self.createRunQueue() }()
     
     private var components: [String: Component] = [:]
+    private var componentsKeysInRunProgress: Set<String> = []
     
     #if DEBUG
     public var suppressAssert: Bool = false
     #endif
     
+    private func createRunQueue() -> NSOperationQueue {
+        
+        let queue = NSOperationQueue()
+        queue.underlyingQueue = dispatch_queue_create("RunIt.RunQueue", DISPATCH_QUEUE_CONCURRENT)
+        return queue
+    }
+    
     // MARK: - Add methods -
-    public static func add(component component: Component) {
-        RunIt.manager.add(component: component)
-    }
-    
-    public static func add(component component: Component, forKey key: String) {
-        RunIt.manager.add(component: component, forKey: key)
-    }
-    
     public func add(component component: Component) {
         
         let key = String(component.dynamicType)
@@ -75,39 +73,56 @@ public class RunIt: Manager, Component {
             self.postNotification(RunItDidAddComponentNotification, component: component, key: key)
             
             if self.runComponentOnAdd, let runnable = component as? Runnable where runnable.isRunning == false {
-                
-                let runQueue = runnable.runQueue ?? self.runQueue
-                dispatch_async(runQueue, {
-                    
-                    var stillThere: Bool = false
-                    dispatch_sync(self.syncQueue, {
-                        if let _ = self.components[key] {
-                            stillThere = true
-                        }
-                    })
-                    if stillThere {
-                        
-                        runnable.run()
-                        self.postNotification(RunItDidRunComponentNotification, component: component, key: key)
-                    }
-                })
+                self.scheduleRunOperation(forRunnableComponent: runnable, andKey: key)
             }
         }
     }
     
+    private func scheduleRunOperation(forRunnableComponent component: Runnable, andKey key: String) {
+        
+        let operation = NSBlockOperation { 
+            
+            func run() {
+                
+                var componentStillExists: Bool = false
+                dispatch_sync(self.syncQueue, {
+                    
+                    if let _ = self.components[key] {
+                        
+                        componentStillExists = true
+                        self.componentsKeysInRunProgress.insert(key)
+                    } else {
+                        
+                    }
+                })
+                if componentStillExists {
+                    
+                    component.run()
+                    dispatch_async(self.syncQueue, {
+                        self.componentsKeysInRunProgress.remove(key)
+                    })
+                    self.postNotification(RunItDidRunComponentNotification, component: component, key: key)
+                }
+            }
+            
+            if let runQueue = component.runQueue {
+                
+                let semaphore = dispatch_semaphore_create(0)
+                dispatch_async(runQueue, {
+                    
+                    run()
+                    dispatch_semaphore_signal(semaphore)
+                })
+                dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+            } else {
+                run()
+            }
+        }
+        operation.queuePriority = component.priority
+        runOperationQueue.addOperation(operation)
+    }
+    
     // MARK: - Get methods -
-    public static func get<T: Component>() -> T? {
-        return RunIt.manager.get()
-    }
-    
-    public static func get<T: Component>(comoponentType: T.Type) -> T? {
-        return RunIt.manager.get(componentForKey: String(comoponentType))
-    }
-    
-    public static func get<T : Component>(componentForKey key: String) -> T? {
-        return RunIt.manager.get(componentForKey: key)
-    }
-    
     public func get<T: Component>() -> T? {
         
         let key = String(T.Type)
@@ -128,18 +143,6 @@ public class RunIt: Manager, Component {
     }
     
     // MARK - Remove methods -
-    public static func remove<T: Component>(component component: T) -> Bool {
-        return RunIt.manager.remove(component: component)
-    }
-    
-    public static func remove<T: Component>(comoponentType: T.Type) -> Bool {
-        return RunIt.manager.remove(componentForKey: String(comoponentType))
-    }
-    
-    public static func remove(componentForKey key: String) -> Bool {
-        return RunIt.manager.remove(componentForKey: key)
-    }
-    
     public func remove<T: Component>(component component: T) -> Bool {
 
         let key = String(component.dynamicType)
@@ -158,14 +161,22 @@ public class RunIt: Manager, Component {
         }
         if let component = result {
             
-            NSNotificationCenter.defaultCenter().postNotificationName(RunItDidRemoveComponentNotification, object: component as? AnyObject, userInfo: [RunItDidRemoveComponentNotification : key])
-            if self.stopComponentOnRemove, let runnable = result as? Runnable where runnable.isRunning {
+            NSNotificationCenter.defaultCenter().postNotificationName(RunItDidRemoveComponentNotification,
+                                                                      object: component,
+                                                                      userInfo: [RunItDidRemoveComponentNotification : key])
+            if self.stopComponentOnRemove, let runnable = result as? Runnable {
                 
-                let runQueue = runnable.runQueue ?? self.runQueue
-                dispatch_async(runQueue) {
+                if runnable.isRunning {
+                    scheduleStopOperation(forRunnableComponent: runnable, andKey: key)
+                } else {
                     
-                    runnable.stop()
-                    self.postNotification(RunItDidStopComponentNotification, component: component, key: key)
+                    var scheduledToRun: Bool = false
+                    dispatch_sync(syncQueue, { 
+                        scheduledToRun = self.componentsKeysInRunProgress.contains(key) || runnable.isRunning
+                    })
+                    if scheduledToRun {
+                        scheduleStopOperation(forRunnableComponent: runnable, andKey: key)
+                    }
                 }
             }
             return true
@@ -173,11 +184,38 @@ public class RunIt: Manager, Component {
         return false
     }
     
+    private func scheduleStopOperation(forRunnableComponent component: Runnable, andKey key: String) {
+        
+        let operation = NSBlockOperation {
+            
+            func stop() {
+
+                component.stop()
+                self.postNotification(RunItDidStopComponentNotification, component: component, key: key)
+            }
+            
+            if let runQueue = component.runQueue {
+                
+                let semaphore = dispatch_semaphore_create(0)
+                dispatch_async(runQueue, {
+                    
+                    stop()
+                    dispatch_semaphore_signal(semaphore)
+                })
+                dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+            } else {
+                stop()
+            }
+        }
+        operation.queuePriority = component.priority
+        runOperationQueue.addOperation(operation)
+    }
+    
     // MARK: - Post events - 
-    private func postNotification(name: String, component: Component, key: String) {
+    private func postNotification(name: String, component: AnyObject, key: String) {
         
         dispatch_async(dispatch_get_main_queue(), {
-            NSNotificationCenter.defaultCenter().postNotificationName(name, object: component as? AnyObject, userInfo: [RunItNotificaionComponentKeyKey : key])
+            NSNotificationCenter.defaultCenter().postNotificationName(name, object: component, userInfo: [RunItNotificaionComponentKeyKey : key])
         })
     }
 }
