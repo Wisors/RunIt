@@ -65,7 +65,7 @@ public class RunIt: Manager, Component {
     public func add(component component: Component, forKey key: String) {
         
         #if DEBUG
-        assert(suppressAssert == false && components[key] != nil, "WARNING! Trying to reassign component with new one! Possible data loss situation.")
+        assert(!suppressAssert || components[key] == nil, "WARNING! Trying to reassign component with new one! Possible data loss situation.")
         #endif
         dispatch_barrier_async(syncQueue) {
             
