@@ -25,8 +25,8 @@ public protocol Component : class {}
 public protocol Runnable: Component {
     
     var isRunning: Bool { get }
-    var runQueue: dispatch_queue_t? { get }
-    var priority: NSOperationQueuePriority { get }
+    var runQueue: DispatchQueue? { get }
+    var priority: Operation.QueuePriority { get }
     
     func run()
     func stop()

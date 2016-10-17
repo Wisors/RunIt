@@ -25,12 +25,12 @@ public protocol Manager {
     var runComponentOnAdd: Bool {get set}
     var stopComponentOnRemove: Bool {get set}
     
-    func add(component component: Component)
-    func add(component component: Component, forKey key: String)
+    func add(component: Component)
+    func add(component: Component, forKey key: String)
     
     func get<T: Component>() -> T?
     func get<T: Component>(componentForKey key: String) -> T?
     
-    func remove<T: Component>(component component: T) -> Bool
+    func remove<T: Component>(component: T) -> Bool
     func remove(componentForKey key: String) -> Bool
 }

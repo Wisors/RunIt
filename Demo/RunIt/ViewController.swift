@@ -13,13 +13,20 @@ class TestComponent: RunItComponent {
     override func run() {
         super.run()
         
-        print("Run component in queue " + (String(UTF8String: dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL)) ?? ""))
+        print("Run component in queue " + DispatchQueue.currentLabel)
     }
     
     override func stop() {
         super.stop()
         
-        print("Stop component " + (String(UTF8String: dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL)) ?? ""))
+        print("Stop component in queue " + DispatchQueue.currentLabel)
+    }
+}
+
+extension DispatchQueue {
+    
+    class var currentLabel: String {
+        return String(validatingUTF8: __dispatch_queue_get_label(nil)) ?? "Unknown queue"
     }
 }
 
@@ -28,12 +35,12 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        RunIt.add(component: TestComponent(dispatch_queue_create("TestQueue", DISPATCH_QUEUE_CONCURRENT)))
+        RunIt.add(component: TestComponent(runQueue: DispatchQueue(label: "TestQueue", attributes: DispatchQueue.Attributes.concurrent)))
         RunIt.add(component: TestComponent(), forKey: "Main queue")
-        RunIt.add(component: TestComponent(dispatch_get_main_queue()), forKey: "Main queue posponed delete")
+        RunIt.add(component: TestComponent(runQueue: DispatchQueue.main), forKey: "Main queue posponed delete")
         RunIt.remove(componentForKey: "Main queue")
-        RunIt.remove(TestComponent)
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC))), dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) { 
+        RunIt.remove(TestComponent.self)
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.background).asyncAfter(deadline: DispatchTime.now() + .seconds(1)) {
             RunIt.remove(componentForKey: "Main queue posponed delete")
         }
     }

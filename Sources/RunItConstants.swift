@@ -21,11 +21,14 @@
 import Foundation
 
 // MARK: - Notification keys -
-public let RunItDidAddComponentNotification: String = "RunItDidAddComponentNotification"
-public let RunItDidRemoveComponentNotification: String = "RunItDidRemoveComponentNotification"
-
-public let RunItDidRunComponentNotification: String = "RunItDidRunComponentNotification"
-public let RunItDidStopComponentNotification: String = "RunItDidStopComponentNotification"
+extension Notification.Name {
+    
+    static let RunItDidAddComponent = Notification.Name(rawValue: "RunItDidAddComponentNotification")
+    static let RunItDidRemoveComponent = Notification.Name(rawValue: "RunItDidRemoveComponentNotification")
+    
+    static let RunItDidRunComponent = Notification.Name(rawValue: "RunItDidRunComponentNotification")
+    static let RunItDidStopComponent = Notification.Name(rawValue: "RunItDidStopComponentNotification")
+}
 
 // MARK: - Notification userInfo keys -
-public let RunItNotificaionComponentKeyKey: String = "RunItNotificaionComponentKey"
+public let RunItNotificationComponentKey: String = "RunItNotificaionComponentKey"

@@ -20,24 +20,24 @@
 
 import Foundation
 
-public class RunItComponent: Runnable {
+open class RunItComponent: Runnable {
     
-    private(set) public var isRunning: Bool
-    public var runQueue: dispatch_queue_t?
-    public var priority: NSOperationQueuePriority
+    private(set) open var isRunning: Bool
+    open var runQueue: DispatchQueue?
+    open var priority: Operation.QueuePriority
     
-    public init(_ runQueue: dispatch_queue_t? = nil, priority: NSOperationQueuePriority = .Normal) {
+    public init(runQueue: DispatchQueue? = nil, priority: Operation.QueuePriority = .normal) {
         
         self.isRunning = false
         self.runQueue = runQueue
         self.priority = priority
     }
     
-    public func run() {
+    open func run() {
         isRunning = true
     }
     
-    public func stop() {
+    open func stop() {
         isRunning = false
     }
 }

@@ -30,20 +30,20 @@ public extension RunIt {
         set { RunIt.manager.stopComponentOnRemove = newValue }
         get { return RunIt.manager.stopComponentOnRemove }
     }
-    public static var syncQueue: dispatch_queue_t {
+    public static var syncQueue: DispatchQueue {
         set { RunIt.manager.syncQueue = newValue }
         get { return RunIt.manager.syncQueue }
     }
-    public static var runOperationQueue: NSOperationQueue {
+    public static var runOperationQueue: OperationQueue {
         return RunIt.manager.runOperationQueue
     }
     
     // MARK: - Add -
-    public static func add(component component: Component) {
+    public static func add(component: Component) {
         RunIt.manager.add(component: component)
     }
     
-    public static func add(component component: Component, forKey key: String) {
+    public static func add(component: Component, forKey key: String) {
         RunIt.manager.add(component: component, forKey: key)
     }
     
@@ -52,8 +52,8 @@ public extension RunIt {
         return RunIt.manager.get()
     }
     
-    public static func get<T: Component>(comoponentType: T.Type) -> T? {
-        return RunIt.manager.get(componentForKey: String(comoponentType))
+    public static func get<T: Component>(_ comoponentType: T.Type) -> T? {
+        return RunIt.manager.get(componentForKey: String(describing: comoponentType))
     }
     
     public static func get<T : Component>(componentForKey key: String) -> T? {
@@ -61,14 +61,17 @@ public extension RunIt {
     }
     
     // MARK: - Remove -
-    public static func remove<T: Component>(component component: T) -> Bool {
+    @discardableResult
+    public static func remove<T: Component>(component: T) -> Bool {
         return RunIt.manager.remove(component: component)
     }
     
-    public static func remove<T: Component>(comoponentType: T.Type) -> Bool {
-        return RunIt.manager.remove(componentForKey: String(comoponentType))
+    @discardableResult
+    public static func remove<T: Component>(_ comoponentType: T.Type) -> Bool {
+        return RunIt.manager.remove(componentForKey: String(describing: comoponentType))
     }
     
+    @discardableResult
     public static func remove(componentForKey key: String) -> Bool {
         return RunIt.manager.remove(componentForKey: key)
     }
