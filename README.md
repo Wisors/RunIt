@@ -1,13 +1,13 @@
 #RunIt
 
 <p align="left">
-<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift_3.0-compatible-4BC51D.svg?style=flat" alt="Swift 2.2 compatible" /></a>
-<a href="https://cocoapods.org/pods/tablekit"><img src="https://img.shields.io/badge/pod-0.3.0-blue.svg" alt="CocoaPods compatible" /></a>
+<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift_3.1-compatible-4BC51D.svg?style=flat" alt="Swift 2.2 compatible" /></a>
+<a href="https://cocoapods.org/pods/tablekit"><img src="https://img.shields.io/badge/pod-0.3.1-blue.svg" alt="CocoaPods compatible" /></a>
 <img src="https://img.shields.io/badge/platform-iOS-blue.svg?style=flat" alt="Platform iOS" />
 <a href="https://raw.githubusercontent.com/Wisors/RunIt/master/LICENSE"><img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat" alt="License: MIT" /></a>
 </p>
 
-RunIt is a super lightweight yet powerful system components manager. It helps to clean your code from unesessary singletons usage. RunIt has easy to go interface and provides you an opportunity to extend it for your personal needs.
+RunIt is a super lightweight yet powerful system components manager. It helps to clean your code from unesessary singletons usage. RunIt has an easy to go interface and provides you an opportunity to extend it for your personal needs.
 
 ## Features
 
