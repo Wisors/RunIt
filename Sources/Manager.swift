@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2015 Nikishin Alexander https://twitter.com/wisdors
+//    Copyright (c) 2015-2017 Nikishin Alexander https://twitter.com/wisdors
 //
 //    Permission is hereby granted, free of charge, to any person obtaining a copy of
 //    this software and associated documentation files (the "Software"), to deal in

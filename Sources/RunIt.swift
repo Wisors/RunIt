@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2015 Nikishin Alexander https://twitter.com/wisdors
+//    Copyright (c) 2015-2017 Nikishin Alexander https://twitter.com/wisdors
 //
 //    Permission is hereby granted, free of charge, to any person obtaining a copy of
 //    this software and associated documentation files (the "Software"), to deal in
@@ -33,13 +33,13 @@ open class RunIt: Manager, Component {
     /// `Runnable` components will scheduled to stop in runOperationQueue on remove operation if flag is `true`
     open var stopComponentOnRemove: Bool = true
     /// Dispatch queue where access is synced. Custom concurrent queue by default. Usually no need to change it.
-    lazy open var syncQueue: DispatchQueue = DispatchQueue(label: "RunIt.SyncQueue", attributes: DispatchQueue.Attributes.concurrent)
+    open var syncQueue: DispatchQueue
     /**
     This queue is intended to run/stop components or custom user NSOperation objects. It's possible to change any property of this queue, but with a respect to NSOperationQueue properties change rules (for example, you can't change underlyingQueue while there are operations in queue).
     
     - Warning: It's not recommended to use same underlyingQueue with RunIt.syncQueue for thread-safety.
     */
-    lazy open private(set) var runOperationQueue: OperationQueue = { return self.createRunQueue() }()
+    open private(set) var runOperationQueue: OperationQueue
     
     private var components: [String: Component] = [:]
     private var componentsKeysInRunProgress: Set<String> = []
@@ -51,8 +51,14 @@ open class RunIt: Manager, Component {
     private func createRunQueue() -> OperationQueue {
         
         let queue = OperationQueue()
-        queue.underlyingQueue = DispatchQueue(label: "RunIt.RunQueue", attributes: DispatchQueue.Attributes.concurrent)
         return queue
+    }
+    
+    public init() {
+        
+        syncQueue = DispatchQueue(label: "RunIt.SyncQueue", attributes: DispatchQueue.Attributes.concurrent)
+        runOperationQueue = OperationQueue()
+        runOperationQueue.underlyingQueue = DispatchQueue(label: "RunIt.RunQueue", attributes: DispatchQueue.Attributes.concurrent)
     }
     
     // MARK: - Add methods -
